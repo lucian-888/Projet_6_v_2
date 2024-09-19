@@ -1,30 +1,56 @@
-// Importation de multer, un middleware pour gérer les fichiers uploadés
 const multer = require('multer');
+const sharp = require('sharp');
+const path = require('path');
+const crypto = require('crypto');
 
 // Définition d'un objet qui mappe les types MIME aux extensions de fichier
 const MIME_TYPES = {
   'image/jpg': 'jpg',
   'image/jpeg': 'jpg',
-  'image/png': 'png'
+  'image/png': 'png',
+  'image/webp': 'webp'
 };
 
-// Configuration du stockage pour multer
-const storage = multer.diskStorage({
-  // Définition de la destination de stockage des fichiers
-  destination: (req, file, callback) => {
-    // Les fichiers seront sauvegardés dans le dossier 'images'
-    callback(null, 'images');
-  },
-  // Définition du nom de fichier
-  filename: (req, file, callback) => {
-    // Remplace les espaces dans le nom original par des underscores
-    const name = file.originalname.split(' ').join('_');
-    // Récupère l'extension du fichier basée sur son type MIME
-    const extension = MIME_TYPES[file.mimetype];
-    // Crée un nom de fichier unique avec le nom modifié, la date actuelle, et l'extension
-    callback(null, name + Date.now() + '.' + extension);
-  }
-});
+// Configuration du stockage temporaire pour multer
+const storage = multer.memoryStorage();
 
-// Exportation du middleware multer configuré
-module.exports = multer({storage: storage}).single('image');
+// Fonction pour optimiser l'image
+const optimizeImage = async (buffer, mimetype) => {
+  // Générer un nom de fichier unique basé sur le contenu de l'image
+  const hash = crypto.createHash('md5').update(buffer).digest('hex');
+  const extension = MIME_TYPES[mimetype];
+  const filename = `${hash}.${extension}`;
+
+  // Optimiser l'image
+  const optimizedImageBuffer = await sharp(buffer)
+    .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 80 })
+    .toBuffer();
+
+  return { buffer: optimizedImageBuffer, filename };
+};
+
+// Middleware pour gérer l'upload et l'optimisation des images
+const uploadAndOptimize = multer({ storage: storage }).single('image');
+
+const processImage = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const { buffer, filename } = await optimizeImage(req.file.buffer, req.file.mimetype);
+
+    // Sauvegarder l'image optimisée
+    await sharp(buffer).toFile(path.join('images', filename));
+
+    // Mettre à jour req.file avec les nouvelles informations
+    req.file.filename = filename;
+    req.file.path = path.join('images', filename);
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Exportation du middleware combiné
+module.exports = [uploadAndOptimize, processImage];
