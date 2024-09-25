@@ -46,12 +46,12 @@ exports.modifyBook = (req, res, next) => {
     .then((book) => {
       // Vérifie si l'utilisateur est autorisé à modifier le livre
       if (book.userId != req.auth.userId) {
-        res.status(401).json({ message : 'Non autorisé'});
+        res.status(403).json({ message : 'Non autorisé'});
       } else {
         // Met à jour le livre
         Book.updateOne({ _id: req.params.id}, { ...bookObject, _id: req.params.id})
           .then(() => res.status(200).json({message : 'Livre modifié!'}))
-          .catch(error => res.status(401).json({ error }));
+          .catch(error => res.status(400).json({ error }));
       }
     })
     .catch((error) => res.status(500).json({ error }));
@@ -64,7 +64,7 @@ exports.deleteBook = (req, res, next) => {
     .then(book => {
       // Vérifie si l'utilisateur est autorisé à supprimer le livre
       if (book.userId != req.auth.userId) {
-        res.status(401).json({message: 'Non autorisé'});
+        res.status(403).json({message: 'Non autorisé'});
       } else {
         // Extrait le nom du fichier image
         const filename = book.imageUrl.split('/images/')[1];
@@ -85,7 +85,7 @@ exports.getAllBooks = (req, res, next) => {
   // Récupère tous les livres de la base de données
   Book.find()
     .then((books) => res.status(200).json(books))
-    .catch((error) => res.status(400).json({ error }));
+    .catch((error) => res.status(500).json({ error }));
 };
 
 // Récupération des 3 livres les mieux notés
@@ -93,7 +93,7 @@ exports.getBestRatedBooks = (req, res, next) => {
   // Récupère tous les livres, les trie par note moyenne décroissante et limite à 3
   Book.find().sort({averageRating: -1}).limit(3)
     .then(books => res.status(200).json(books))
-    .catch(error => res.status(400).json({ error }));
+    .catch(error => res.status(500).json({ error }));
 };
 
 // Notation d'un livre
