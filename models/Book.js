@@ -30,8 +30,5 @@ const bookSchema = mongoose.Schema({
 
 // Exportation du modèle Book
 module.exports = 
-    
-    //mongoose.model('Book', bookSchema);  'façon standard de définir un modèle Mongoose)
-
     // Cette ligne vérifie si le modèle Book existe déjà, sinon le crée
     mongoose.models.Book || mongoose.model('Book', bookSchema)

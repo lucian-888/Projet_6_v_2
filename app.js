@@ -3,8 +3,7 @@ const express = require('express');
 // Importation de Mongoose pour la gestion de la base de données MongoDB
 const mongoose = require('mongoose');
 
-// Importation du modèle Book 
-//const Book = require('./models/Book');
+require('dotenv').config()
 
 // Importation des routes pour les livres et les utilisateurs
 const booksRoutes = require('./routes/books');
@@ -17,7 +16,7 @@ const path = require('path');
 const app = express();
 
 // Connexion à la base de données MongoDB
-mongoose.connect('mongodb+srv://lucianbistreanu:XpWR8RFtWB2xnM8n@cluster0.juk6c.mongodb.net/')
+mongoose.connect(process.env.MONGOOSE_CONECTION)
     //{ useNewUrlParser: true,
     //  useUnifiedTopology: true })
     .then(() => console.log('Connexion à MongoDB réussie !'))

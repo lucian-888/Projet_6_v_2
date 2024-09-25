@@ -19,7 +19,7 @@ const optimizeImage = async (buffer, mimetype) => {
   // Générer un nom de fichier unique basé sur le contenu de l'image
   const hash = crypto.createHash('md5').update(buffer).digest('hex');
   const extension = MIME_TYPES[mimetype];
-  const filename = `${hash}.${extension}`;
+  const filename = `${hash}.webp`;
 
   // Optimiser l'image
   const optimizedImageBuffer = await sharp(buffer)
@@ -37,7 +37,7 @@ const processImage = async (req, res, next) => {
   if (!req.file) return next();
 
   try {
-    const { buffer, filename } = await optimizeImage(req.file.buffer, req.file.mimetype);
+    const { buffer, filename } = await optimizeImage(req.file.buffer);
 
     // Sauvegarder l'image optimisée
     await sharp(buffer).toFile(path.join('images', filename));
@@ -45,7 +45,7 @@ const processImage = async (req, res, next) => {
     // Mettre à jour req.file avec les nouvelles informations
     req.file.filename = filename;
     req.file.path = path.join('images', filename);
-
+    req.file.mimetype = 'image/webp';
     next();
   } catch (error) {
     next(error);

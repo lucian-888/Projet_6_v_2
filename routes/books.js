@@ -6,26 +6,8 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 // Importation du middleware multer pour la gestion des fichiers
 const multer = require('../middleware/multer-config');
-// Importation du modèle Book 
-//const Book = require('../models/Book');
-
 // Importation du contrôleur des livres
 const booksCtrl = require('../controllers/books');
-
-{/*  // Middleware pour parser le corps des requêtes en JSON
-router.use(express.json()); 
-
-// Middleware pour gérer les CORS (Cross-Origin Resource Sharing)
-router.use((req, res, next) => {
-    // Autorise l'accès à l'API depuis n'importe quelle origine
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    // Définit les en-têtes autorisés
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
-    // Définit les méthodes HTTP autorisées
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    // Passe au middleware suivant
-    next();
-});  */}
 
 // Définition des routes pour les livres
 
