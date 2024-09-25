@@ -3,25 +3,52 @@ const fs = require('fs');
 
 // Création d'un nouveau livre
 exports.createBook = (req, res, next) => {
-  // Parse l'objet livre du corps de la requête
-  const bookObject = JSON.parse(req.body.book);
-  // Supprime l'ID et userID fournis par le client pour des raisons de sécurité
+  //console.log("Données reçues:", req.body);
+
+  let bookObject;
+  try {
+    bookObject = JSON.parse(req.body.book);
+  } catch (error) {
+    bookObject = req.body;
+  }
+
+  //console.log("Book object:", bookObject);
+
   delete bookObject._id;
-  delete bookObject._userId;
-  // Crée une nouvelle instance de Book avec les données fournies et des valeurs par défaut
+  // Ne supprimez pas userId ici, car il est nécessaire pour la notation initiale
+
+  // Utilisez les ratings et averageRating existants s'ils sont fournis
+  const initialRatings = bookObject.ratings || [];
+  const initialAverageRating = bookObject.averageRating || 0;
+
+  //console.log("Initial ratings:", initialRatings);
+  //console.log("Initial average rating:", initialAverageRating);
+
   const book = new Book({
     ...bookObject,
-    userId: req.auth.userId, // Utilise l'ID de l'utilisateur authentifié
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`, // Construit l'URL de l'image
-    averageRating: 0, // Initialise la note moyenne à 0
-    ratings: [] // Initialise les notations comme un tableau vide
+    userId: req.auth.userId, // Remplacez par l'ID de l'utilisateur authentifié
+    imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null,
+    ratings: initialRatings,
+    averageRating: initialAverageRating
   });
 
-  // Sauvegarde le livre dans la base de données
+  //console.log("Book to save:", book);
+
   book.save()
-    .then(() => res.status(201).json({ message: 'Livre enregistré !' }))
-    .catch(error => res.status(400).json({ error }));
+    .then((savedBook) => {
+      res.status(201).json({ 
+        message: initialRatings.length > 0 ? 'Livre enregistré et noté !' : 'Livre enregistré !',
+        book: savedBook
+      });
+    })
+    .catch(error => {
+      console.error("Erreur lors de la sauvegarde:", error);
+      res.status(400).json({ error })
+    });
 };
+
+
+
 
 // Récupération d'un livre spécifique
 exports.getOneBook = (req, res, next) => {
@@ -133,3 +160,17 @@ exports.rateBook = (req, res, next) => {
 
 
 
+{/*async function deleteBook() {
+  try {
+    const deletedBook = await Book.findByIdAndDelete("66f423229aa77a0c47781e6f");
+    if (deletedBook) {
+      console.log("Livre supprimé avec succès:", deletedBook);
+    } else {
+      console.log("Aucun livre trouvé avec cet ID");
+    }
+  } catch (error) {
+    console.error("Erreur lors de la suppression du livre:", error);
+  }
+}
+
+deleteBook();*/}
