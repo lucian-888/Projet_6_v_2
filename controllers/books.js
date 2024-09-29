@@ -3,37 +3,33 @@ const fs = require('fs');
 
 // Création d'un nouveau livre
 exports.createBook = (req, res, next) => {
-  //console.log("Données reçues:", req.body);
-
   let bookObject;
   try {
+    // Tente de parser le corps de la requête comme JSON
     bookObject = JSON.parse(req.body.book);
   } catch (error) {
+    // Si le parsing échoue, utilise directement le corps de la requête
     bookObject = req.body;
   }
 
-  //console.log("Book object:", bookObject);
-
+  // Supprime l'ID du livre s'il est présent dans la requête
   delete bookObject._id;
-  // Ne supprimez pas userId ici, car il est nécessaire pour la notation initiale
 
-  // Utilisez les ratings et averageRating existants s'ils sont fournis
+  // Utilise les ratings et averageRating existants s'ils sont fournis, sinon initialise avec des valeurs par défaut
   const initialRatings = bookObject.ratings || [];
   const initialAverageRating = bookObject.averageRating || 0;
 
-  //console.log("Initial ratings:", initialRatings);
-  //console.log("Initial average rating:", initialAverageRating);
-
+  // Crée une nouvelle instance de Book avec les données fournies
   const book = new Book({
     ...bookObject,
-    userId: req.auth.userId, // Remplacez par l'ID de l'utilisateur authentifié
+    userId: req.auth.userId, // Utilise l'ID de l'utilisateur authentifié
+    // Construit l'URL de l'image si un fichier a été uploadé, sinon null
     imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null,
     ratings: initialRatings,
     averageRating: initialAverageRating
   });
 
-  //console.log("Book to save:", book);
-
+  // Sauvegarde le nouveau livre dans la base de données
   book.save()
     .then((savedBook) => {
       res.status(201).json({ 
@@ -42,12 +38,9 @@ exports.createBook = (req, res, next) => {
       });
     })
     .catch(error => {
-      console.error("Erreur lors de la sauvegarde:", error);
       res.status(400).json({ error })
     });
-};
-
-
+}
 
 
 // Récupération d'un livre spécifique
@@ -78,7 +71,7 @@ exports.modifyBook = (req, res, next) => {
         // Met à jour le livre
         Book.updateOne({ _id: req.params.id}, { ...bookObject, _id: req.params.id})
           .then(() => res.status(200).json({message : 'Livre modifié!'}))
-          .catch(error => res.status(400).json({ error }));
+          .catch(error => res.status(401).json({ error }));
       }
     })
     .catch((error) => res.status(500).json({ error }));
@@ -100,7 +93,7 @@ exports.deleteBook = (req, res, next) => {
           // Supprime le livre de la base de données
           Book.deleteOne({_id: req.params.id})
             .then(() => res.status(200).json({message: 'Livre supprimé !'}))
-            .catch(error => res.status(400).json({ error }));
+            .catch(error => res.status(401).json({ error }));
         });
       }
     })
@@ -112,7 +105,7 @@ exports.getAllBooks = (req, res, next) => {
   // Récupère tous les livres de la base de données
   Book.find()
     .then((books) => res.status(200).json(books))
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(400).json({ error }));
 };
 
 // Récupération des 3 livres les mieux notés
@@ -157,20 +150,3 @@ exports.rateBook = (req, res, next) => {
     .then(updatedBook => res.status(200).json(updatedBook))
     .catch(error => res.status(500).json({ error }));
 };
-
-
-
-{/*async function deleteBook() {
-  try {
-    const deletedBook = await Book.findByIdAndDelete("66f423229aa77a0c47781e6f");
-    if (deletedBook) {
-      console.log("Livre supprimé avec succès:", deletedBook);
-    } else {
-      console.log("Aucun livre trouvé avec cet ID");
-    }
-  } catch (error) {
-    console.error("Erreur lors de la suppression du livre:", error);
-  }
-}
-
-deleteBook();*/}

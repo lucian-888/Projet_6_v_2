@@ -2,7 +2,7 @@
 const express = require('express');
 // Importation de Mongoose pour la gestion de la base de données MongoDB
 const mongoose = require('mongoose');
-
+// Charge les variables d'environnement du fichier .env dans process.env
 require('dotenv').config()
 
 // Importation des routes pour les livres et les utilisateurs

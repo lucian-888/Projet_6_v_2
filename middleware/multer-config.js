@@ -1,7 +1,12 @@
+// Importe le module 'multer' pour gérer les uploads de fichiers dans les requêtes HTTP
 const multer = require('multer');
+// Importe le module 'sharp' pour le traitement et la manipulation d'images
 const sharp = require('sharp');
+// Importe le module 'path' de Node.js pour gérer les chemins de fichiers
 const path = require('path');
+// Importe le module 'crypto' de Node.js pour générer des hachages cryptographiques
 const crypto = require('crypto');
+
 
 // Définition d'un objet qui mappe les types MIME aux extensions de fichier
 const MIME_TYPES = {

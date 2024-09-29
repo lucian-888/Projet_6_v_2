@@ -8,7 +8,6 @@ const app = require('./app');
 const normalizePort = val => {
   // Tente de convertir la valeur en nombre entier
   const port = parseInt(val, 10);
-
   // Si la conversion échoue (résultat n'est pas un nombre), retourne la valeur originale
   if (isNaN(port)) {
     return val;
